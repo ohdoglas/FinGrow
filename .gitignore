@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 backend/src/config/google-services.json
 backend/data/postgres/
 
@@ -5,6 +6,8 @@ backend/data/postgres/
 
 
 
+=======
+>>>>>>> c24cee64f297ce53e304f964ebd92a929de6884c
 # Logs
 logs
 *.log
