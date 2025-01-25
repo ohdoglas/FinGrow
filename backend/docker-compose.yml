@@ -1,0 +1,17 @@
+services:
+  fingrow_db:
+    container_name: fingrow_db
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - fingrow_app_network
+
+networks:
+  fingrow_app_network:
+    driver: bridge
