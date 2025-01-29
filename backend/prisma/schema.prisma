@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,22 +8,24 @@ datasource db {
 }
 
 model User {
-  id                String       @id @default(uuid()) @db.Uuid
-  username          String       @unique @db.VarChar(50)
-  email             String       @unique @db.VarChar(255)
-  password          String       @db.VarChar(255)
-  role              Roles        @default(USER)
-  status            Status       @default(ACTIVE)
-  confirmationToken String?      @unique
-  emailVerified     Boolean      @default(false)
+  id                String           @id @default(uuid()) @db.Uuid
+  username          String           @unique @db.VarChar(50)
+  email             String           @unique @db.VarChar(255)
+  password          String           @db.VarChar(255)
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
   last_login        DateTime?
-  created_at        DateTime     @default(now())
-  updated_at        DateTime     @updatedAt
-  profile           UserProfile?
-  loginAttempts     LoginAttempt[]
+  status            Status           @default(ACTIVE)
+  role              Roles            @default(USER)
+  confirmationToken String?          @unique
+  emailVerified     Boolean          @default(false)
+
   permissions       UserPermissions[]
-  wallet            Wallet?
-  achievements      UserAchievements[]
+  userRoles         UserRoles[]
+  wallet            Wallet?          @relation("UserWallet") // Removi os parâmetros `fields` e `references`
+  profile           UserProfile?
+  loginAttempts     LoginAttempt[]   @relation("UserLoginAttempts")
+  userAchievements  UserAchievements[]
   quizProgress      QuizProgress[]
 }
 
@@ -44,6 +40,28 @@ model UserProfile {
   user          User     @relation(fields: [user_id], references: [id])
 }
 
+model UserPermissions {
+  id          String  @id @default(uuid()) @db.Uuid
+  user_id     String  @db.Uuid
+  permission  Permissions
+  user        User    @relation(fields: [user_id], references: [id])
+}
+
+model UserRoles {
+  id      String @id @default(uuid()) @db.Uuid
+  user_id String @db.Uuid
+  role    Roles
+  user    User   @relation(fields: [user_id], references: [id])
+}
+
+model LoginAttempt {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  timestamp  DateTime @default(now())
+  success    Boolean
+  user       User     @relation("UserLoginAttempts", fields: [user_id], references: [id])
+}
+
 model Wallet {
   id           String       @id @default(uuid()) @db.Uuid
   user_id      String       @unique @db.Uuid
@@ -51,7 +69,7 @@ model Wallet {
   transactions Transaction[]
   created_at   DateTime     @default(now())
   updated_at   DateTime     @updatedAt
-  user         User         @relation(fields: [user_id], references: [id])
+  user         User         @relation("UserWallet", fields: [user_id], references: [id]) // Agora, o `fields` e `references` estão apenas aqui
 }
 
 model Transaction {
@@ -87,6 +105,7 @@ model Quizzes {
   description String?
   questions   Json
   created_at  DateTime      @default(now())
+  quizProgress QuizProgress[]
 }
 
 model QuizProgress {
@@ -114,4 +133,27 @@ model Insights {
   title      String   @unique
   content    String
   created_at DateTime @default(now())
+}
+
+enum Roles {
+  ADMIN
+  MODERATOR
+  USER
+  GUEST
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum Permissions {
+  READ_ONLY
+  WRITE
+  DELETE
+  MANAGE_USERS
+  VIEW_DASHBOARD
+  EDIT_CONTENT
 }
